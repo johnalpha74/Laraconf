@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Enums\Region;
+use App\Models\Venue;
 
 class ConferenceResource extends Resource
 {
@@ -48,10 +50,18 @@ class ConferenceResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('status')
                     ->required(),
-                Forms\Components\TextInput::make('region')
-                    ->required(),
+                    Forms\Components\Select::make('region')
+                    ->live()
+                    ->enum(Region::class)
+                    -> options(Region::class),
                 Forms\Components\Select::make('venue_id')
-                    ->relationship('venue', 'name'),
+                    ->searchable()
+                    ->preload()
+                    ->createOptionForm(schema: Venue::getForm())
+                    ->editOptionForm(Venue::getForm(''))
+                    ->relationship('venue', 'name', modifyQueryUsing: function (Builder $query, Forms\Get $get) {
+                        return $query->where(column: 'region', operator: $get(path: 'region'));
+                    }),
             ]);
     }
 
