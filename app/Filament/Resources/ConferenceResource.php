@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Enums\Region;
 use App\Models\Venue;
+use App\Models\Speaker;
 
 class ConferenceResource extends Resource
 {
@@ -24,45 +25,7 @@ class ConferenceResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->default(state: 'My Conference')
-                    ->helperText( text: 'This is the name of your conference')
-                    ->required()
-                    ->maxLength(length: 60),
-                Forms\Components\MarkDownEditor::make('description')
-                ->helperText( text: 'Hello')
-                    ->required(),
-                Forms\Components\DatePicker::make('start_date')
-                    ->native( condition: false)
-                    ->required(),
-                Forms\Components\DateTimePicker::make('end_date')
-                    ->native( condition: false)
-                    ->required(),
-                Forms\Components\Checkbox::make(name: 'is_published')
-                    ->default(state: true),
-                Forms\Components\Select::make('status')
-                    ->options( options: [
-                        'draft' => 'Draft',
-                        'published' => 'Published',
-                        'archived' => 'Archived',
-                    ] )
-                    ->required(),
-                Forms\Components\TextInput::make('status')
-                    ->required(),
-                    Forms\Components\Select::make('region')
-                    ->live()
-                    ->enum(Region::class)
-                    -> options(Region::class),
-                Forms\Components\Select::make('venue_id')
-                    ->searchable()
-                    ->preload()
-                    ->createOptionForm(schema: Venue::getForm())
-                    ->editOptionForm(Venue::getForm(''))
-                    ->relationship('venue', 'name', modifyQueryUsing: function (Builder $query, Forms\Get $get) {
-                        return $query->where(column: 'region', operator: $get(path: 'region'));
-                    }),
-            ]);
+            ->schema(Conference::getForm());
     }
 
     public static function table(Table $table): Table
